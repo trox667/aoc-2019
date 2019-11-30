@@ -1,4 +1,7 @@
+extern crate chrono;
+
 pub mod io {
+    use chrono::NaiveDateTime;
     use std::fs::File;
     use std::io::BufReader;
     use std::io::prelude::*;
@@ -11,4 +14,9 @@ pub mod io {
             Vec::new()
         }
     }
+
+    pub fn parse_date_ymd_hm(s: &str) -> Option<NaiveDateTime> {
+        NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M").ok()
+    }
 }
+
