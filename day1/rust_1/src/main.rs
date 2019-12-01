@@ -2,15 +2,16 @@ use baselib::io;
 
 fn main() {
     println!("🎅 Happy Advent of Code, let's start 🎁...");
-    let sum = get_fuel_amount(io::read_file("input"));
+    let input = io::read_file("input");
+    let sum = get_fuel_amount(&input);
     println!("total amount of fuel {}", sum);
-    let fuel = get_total_fuel_amount(io::read_file("input"));
+    let fuel = get_total_fuel_amount(&input);
     println!("total amount of fuel with mass {}", fuel);
     println!("🎅 ...done for today 🎄");
 }
 
 // part 1
-fn get_fuel_amount(lines: Vec<String>) -> usize {
+fn get_fuel_amount(lines: &Vec<String>) -> usize {
     lines.iter().filter_map(|line| {
        parse_mass(line) 
     }).map(mass_to_fuel).sum()
@@ -29,8 +30,7 @@ fn mass_to_fuel(mass: usize) -> usize {
 }
 
 // part 2
-
-fn get_total_fuel_amount(lines: Vec<String>) -> usize {
+fn get_total_fuel_amount(lines: &Vec<String>) -> usize {
     lines.iter().filter_map(|line| {
        parse_mass(line) 
     }).map(mass_to_fuel_add_fuel).sum()
@@ -67,12 +67,12 @@ mod test {
     fn fuel_amount() {
         let d = vec!["12", "14", "1969", "100756"];
         let d = d.into_iter().map(String::from).collect();
-        assert_eq!(get_fuel_amount(d), 34241);
+        assert_eq!(get_fuel_amount(&d), 34241);
     }
 
     #[test]
     fn star_one() {
-        let sum = get_fuel_amount(io::read_file("input"));
+        let sum = get_fuel_amount(&io::read_file("input"));
         assert_eq!(sum, 3327415);
     }
 
@@ -85,5 +85,10 @@ mod test {
         let fuel = mass_to_fuel_add_fuel(100756);
         assert_eq!(fuel, 50346);
     }
-
+    
+    #[test]
+    fn start_two() {
+        let sum = get_total_fuel_amount(&io::read_file("input"));
+        assert_eq!(sum, 4988257);
+    }
 }
