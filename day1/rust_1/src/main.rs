@@ -37,14 +37,12 @@ fn get_total_fuel_amount(lines: &Vec<String>) -> usize {
 }
 
 fn mass_to_fuel_add_fuel(mass: usize) -> usize {
-    let mut fuel = mass_to_fuel(mass);
-    let mut sum = fuel;
-    while mass_to_fuel(fuel) > 0 {
-        fuel = mass_to_fuel(fuel);
-        sum += fuel;
+    let fuel = mass_to_fuel(mass);
+    if fuel > 0 {
+        fuel + mass_to_fuel_add_fuel(fuel)
+    } else {
+        fuel
     }
-
-    sum
 }
 
 #[cfg(test)]
@@ -75,9 +73,9 @@ mod test {
         let sum = get_fuel_amount(&io::read_file("input"));
         assert_eq!(sum, 3327415);
     }
-
+    
     #[test]
-    fn fuel_for_fuel() {
+    fn fuel_for_fuel_rec() {
         let fuel = mass_to_fuel_add_fuel(12);
         assert_eq!(fuel, 2);
         let fuel = mass_to_fuel_add_fuel(1969);
@@ -85,7 +83,7 @@ mod test {
         let fuel = mass_to_fuel_add_fuel(100756);
         assert_eq!(fuel, 50346);
     }
-    
+
     #[test]
     fn start_two() {
         let sum = get_total_fuel_amount(&io::read_file("input"));
