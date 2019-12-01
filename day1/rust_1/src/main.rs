@@ -11,32 +11,31 @@ fn main() {
 }
 
 // part 1
-fn get_fuel_amount(lines: &Vec<String>) -> usize {
+fn get_fuel_amount(lines: &Vec<String>) -> i32 {
     lines.iter().filter_map(|line| {
        parse_mass(line) 
     }).map(mass_to_fuel).sum()
 }
 
-fn parse_mass(s: &str) -> Option<usize> {
-   s.parse::<usize>().ok() 
+fn parse_mass(s: &str) -> Option<i32> {
+   s.parse::<i32>().ok() 
 }
 
-fn mass_to_fuel(mass: usize) -> usize {
-   let mass = mass as f32;
-   match (mass / 3.0).floor() - 2.0 {
-       fuel if fuel > 0.0 => fuel as usize,
+fn mass_to_fuel(mass: i32) -> i32 {
+   match mass / 3 - 2 {
+       fuel if fuel > 0 => fuel,
        _ => 0
    }
 }
 
 // part 2
-fn get_total_fuel_amount(lines: &Vec<String>) -> usize {
+fn get_total_fuel_amount(lines: &Vec<String>) -> i32 {
     lines.iter().filter_map(|line| {
        parse_mass(line) 
     }).map(mass_to_fuel_add_fuel).sum()
 }
 
-fn mass_to_fuel_add_fuel(mass: usize) -> usize {
+fn mass_to_fuel_add_fuel(mass: i32) -> i32 {
     let fuel = mass_to_fuel(mass);
     if fuel > 0 {
         fuel + mass_to_fuel_add_fuel(fuel)
