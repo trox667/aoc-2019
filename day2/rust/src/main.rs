@@ -1,39 +1,31 @@
 use baselib::io;
 
 fn main() {
-    io::read_file("input").iter().for_each(|line| {
-        let mut d = parse_uint(line);
+    let lines: Vec<String> = io::read_file("input");
+    if lines.len() > 0 {
+        let mut d: Vec<usize> = string_to_num_vec(&lines[0]);
+        let d2 = d.clone();
         d[1] = 12;
         d[2] = 2;
-        process(&mut d);
+        run(&mut d);
         println!("Part 1: {}", d[0]);
-    });
 
-    io::read_file("input").iter().for_each(|line| {
-        let mut d = parse_uint(line);
-        if let Some(res) = solve(19690720, &mut d.clone()) {
-            println!("Part 2: {}", res.0 * 100 + res.1);
-
-            d[1] = res.0;
-            d[2] = res.1;
-            process(&mut d);
-            println!("Part 2 verify: {}", d[0]);
-        } else {
-            println!("Part 2: error");
+        if let Some(res) = search(19690720, &d2) {
+            println!("Part 2: {}", 100 * res.0 + res.1);
         }
-    });
+    }
 }
 
-fn solve(target: usize, d: &mut Vec<usize>) -> Option<(usize, usize)> {
+fn search(target: usize, d: &Vec<usize>) -> Option<(usize, usize)> {
     for n in 0..99 {
         for v in 0..99 {
-           let mut d = d.clone();
-           d[1] = n;
-           d[2] = v;
-           process(&mut d);
-           if d[0] == target {
-               return Some((n,v));
-           }
+            let mut dc = d.clone();
+            dc[1] = n;
+            dc[2] = v;
+            run(&mut dc); 
+            if dc[0] == target {
+                return Some((n,v)); 
+            }
         }
     }
     None
@@ -42,39 +34,32 @@ fn solve(target: usize, d: &mut Vec<usize>) -> Option<(usize, usize)> {
 const ADD: usize = 1;
 const MULTIPLY: usize = 2;
 const TERMINATE: usize = 99;
-const WIDTH: usize = 4;
 
-fn parse_uint(d: &str) -> Vec<usize> {
-    d.split(',').filter_map(|t| {
-        t.parse::<usize>().ok()
-    }).collect()
+fn string_to_num_vec(s: &str) -> Vec<usize> {
+    s.split(',').filter_map(|token| token.parse::<usize>().ok()).collect()
 }
 
-fn exec(c: usize, d1: usize, d2: usize) -> Option<usize> {
+fn op(c: usize, in1: usize, in2: usize) -> Option<usize> {
     match c {
-        ADD => Some(d1 + d2),
-        MULTIPLY => Some(d1 * d2),
-        _ => None
+        ADD => Some(in1 + in2),
+        MULTIPLY => Some(in1 * in2),
+        _ => None,
     }
 }
 
-fn process(d: &mut Vec<usize>) {
+fn run(d: &mut Vec<usize>) {
     let mut i = 0;
     while i < d.len() {
-        if d[i] == TERMINATE {
-            return;
-        } else if i % WIDTH == 0 {
-            let c = d[i];
-            let res = exec(c, d[d[i+1]], d[d[i+2]]);
-            if let Some(res) = res {
-                let idx = d[i+3];
-                d[idx] = res;
-            } else {
-                panic!("add/multiply without result");
-            }
-            i += 4;
-        } else {
-            i += 1;
+        match d[i] {
+            TERMINATE => return,
+            ADD | MULTIPLY => {
+                if let Some(v) = op(d[i], d[d[i+1]], d[d[i+2]]) {
+                    let idx = d[i+3];
+                    d[idx] = v;
+                }
+                i += 4;
+            },
+            _ => i += 1
         }
     }
 }
@@ -87,25 +72,13 @@ mod test {
     fn parse() {
         let d = "1,9,10,3,2,3,11,0,99,30,40,50";
         let ref_d = vec![1,9,10,3,2,3,11,0,99,30,40,50];
-        assert_eq!(parse_uint(d), ref_d);
+        assert_eq!(string_to_num_vec(d), ref_d);
     }
 
     #[test]
     fn sample() {
-        let mut ref_d = vec![1,9,10,3,2,3,11,0,99,30,40,50];
-        process(&mut ref_d);
-        assert_eq!(ref_d, vec![3500,9,10,70,2,3,11,0,99,30,40,50]);
-        let mut ref_d = vec![1,0,0,0,99];
-        process(&mut ref_d);
-        assert_eq!(ref_d, vec![2,0,0,0,99]);
-        let mut ref_d = vec![2,3,0,3,99];
-        process(&mut ref_d);
-        assert_eq!(ref_d, vec![2,3,0,6,99]);
-        let mut ref_d = vec![2,4,4,5,99,0];
-        process(&mut ref_d);
-        assert_eq!(ref_d, vec![2,4,4,5,99,9801]);
-        let mut ref_d = vec![1,1,1,4,99,5,6,0,99];
-        process(&mut ref_d);
-        assert_eq!(ref_d, vec![30,1,1,4,2,5,6,0,99]);
+        let mut d = vec![1,9,10,3,2,3,11,0,99,30,40,50];
+        run(&mut d);
+        assert_eq!(d[0], 3500);
     }
 }
