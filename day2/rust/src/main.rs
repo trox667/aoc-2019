@@ -1,7 +1,7 @@
 use baselib::io;
 
 fn main() {
-    let lines: Vec<String> = io::read_file("input");
+    let lines: Vec<String> = io::read_file("../input");
     if lines.len() > 0 {
         let mut d: Vec<usize> = string_to_num_vec(&lines[0]);
         let d2 = d.clone();
