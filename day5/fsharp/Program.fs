@@ -71,6 +71,28 @@ let rec run pointer (data: int[]) (input: int) (output: int[]) =
   | 4 ->
     let o = Array.append output [|p1|]
     run (pointer+2) data input o
+  | 5 ->
+    if p1 <> 0 then
+      run (p2) data input output
+    else
+      run (pointer+3) data input output
+  | 6 -> 
+    if p1 = 0 then
+      run (p2) data input output
+    else
+      run (pointer+3) data input output
+  | 7 ->
+    if p1 < p2 then
+      Array.set data p3 1
+    else 
+      Array.set data p3 0
+    run (pointer+4) data input output
+  | 8 ->
+    if p1 = p2 then
+      Array.set data p3 1
+    else 
+      Array.set data p3 0
+    run (pointer+4) data input output
   | 99 ->
     output
   | _ ->
@@ -92,4 +114,6 @@ let main argv =
     //run 0 data [||] |> printfn "%A"
     let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
     run 0 data 1 [||] |> printfn "%A"
+    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    run 0 data 5 [||] |> printfn "%A"
   0 // return an integer exit code
