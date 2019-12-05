@@ -20,6 +20,7 @@ let isCombined (v:int) =
 
 let access (data: int[]) (pointer: int) =
   if pointer >= Array.length data then
+    //printfn "ERROR -> %i" pointer
     0
   else 
     data.[pointer]
@@ -30,46 +31,56 @@ let getValue (data: int[]) (pointer: int) (immediate: int) =
   | 0 -> accessData (accessData pointer)
   | _ -> accessData pointer
 
+let isInput (op: int) =
+  match op with
+  | 3 -> true
+  | _ -> false
+
 let getInstruction (data: int[]) (pointer: int) =
   let accessData = access data
   match isCombined (accessData pointer) with
   | true -> 
     let (op, p1, p2, p3) = accessData pointer |> splitCombined
-    let r1 = getValue data (pointer+1) p1
+    let r1 = getValue data (pointer+1) (if isInput op then 1 else p1)
     let r2 = getValue data (pointer+2) p2
-    let r3 = getValue data (pointer+3) p3
+    let r3 = getValue data (pointer+3) 1
 
     (op, r1, r2, r3)
   | false ->
     let op = accessData pointer
-    let r1 = getValue data (pointer+1) 0
+    let r1 = getValue data (pointer+1) (if isInput op then 1 else 0)
     let r2 = getValue data (pointer+2) 0
     let r3 = getValue data (pointer+3) 1
 
     (op, r1, r2, r3)
 
-let rec run pointer (data: int[]) (output: int[]) =
-  let (op, i1, i2, o1) = getInstruction data pointer
+let rec run pointer (data: int[]) (input: int) (output: int[]) =
+  let (op, p1, p2, p3) = getInstruction data pointer
   match op with
   | 1 -> 
-    Array.set data o1 (i1+i2)
-    run (pointer+4) data output
+    let res = p1+p2
+    Array.set data p3 res
+    run (pointer+4) data res output
   | 2 -> 
-    Array.set data o1 (i1*i2)
-    run (pointer+4) data output
+    let res = p1*p2
+    Array.set data p3 res
+    run (pointer+4) data res output
   | 3 ->
-    data
+    Array.set data p1 input
+    run (pointer+2) data input output
   | 4 ->
-    data
+    let o = Array.append output [|p1|]
+    run (pointer+2) data input o
   | 99 ->
-    data
+    output
   | _ ->
-    data
+    run (pointer+1) data input output
 
 let tests () =
-  1002 |> splitCombined |> printfn "%A"
-  getInstruction [|1;0;0;3;99|] 0 |> printfn "%A"
-  run 0 [|1;9;10;3;2;3;11;0;99;30;40;50|] [||] |> printfn "%A"
+  //1002 |> splitCombined |> printfn "%A"
+  //getInstruction [|1;0;0;3;99|] 0 |> printfn "%A"
+  //run 0 [|1;9;10;3;2;3;11;0;99;30;40;50|] 0 [||] |> printfn "%A"
+  //run 0 [|1002;4;3;4;33|] 0 [||] |> printfn "%A"
   true
 
 [<EntryPoint>]
@@ -79,6 +90,6 @@ let main argv =
     //Array.set data 1 12
     //Array.set data 2 2
     //run 0 data [||] |> printfn "%A"
-    let data = File.ReadAllLines "../input" |> Array.item 0 |> toIntArr
-    printfn "%A" data
+    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    run 0 data 1 [||] |> printfn "%A"
   0 // return an integer exit code
