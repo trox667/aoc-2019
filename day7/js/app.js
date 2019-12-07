@@ -118,6 +118,10 @@ const run = (pointer, program, inputs, output) => {
         break;
       }
       case 3: {
+        if (inputs.length == 0) {
+          halt = true;
+          break;
+        }
         write(p1, program, inputs.shift());
         pointer += 2;
         break;
@@ -151,6 +155,7 @@ const run = (pointer, program, inputs, output) => {
       }
       case 99: {
         halt = true;
+        pointer = -1;
         break;
       }
       default: {
@@ -158,21 +163,22 @@ const run = (pointer, program, inputs, output) => {
       }
     }
   }
+  return pointer;
 };
 
-const amplifier = (program, phase) => {
+const amplifier = (inputPointer, program, phase) => {
   let output = [];
-  run(0, program, phase, output);
-  if (output.length > 0) return output[output.length - 1];
-  return 0;
+  const pointer = run(inputPointer, program, phase, output);
+  if (output.length > 0) return [pointer, output[output.length - 1]];
+  return [pointer, 0];
 };
 
 const amplifierSeries = (program, phases) => {
-  const r1 = amplifier([...program], [phases[0], 0]);
-  const r2 = amplifier([...program], [phases[1], r1]);
-  const r3 = amplifier([...program], [phases[2], r2]);
-  const r4 = amplifier([...program], [phases[3], r3]);
-  const r5 = amplifier([...program], [phases[4], r4]);
+  const [p1, r1] = amplifier(0, [...program], [phases[0], 0]);
+  const [p2, r2] = amplifier(0, [...program], [phases[1], r1]);
+  const [p3, r3] = amplifier(0, [...program], [phases[2], r2]);
+  const [p4, r4] = amplifier(0, [...program], [phases[3], r3]);
+  const [p5, r5] = amplifier(0, [...program], [phases[4], r4]);
   return r5;
 };
 
@@ -180,7 +186,56 @@ const searchSignal = program => {
   const permutations = permutator([0, 1, 2, 3, 4]);
   let signal = 0;
   permutations.forEach(phases => {
-    signal = Math.max(signal, amplifierSeries(program, phases));
+    let output = amplifierSeries(program, phases);
+    signal = Math.max(signal, output);
+  });
+  return signal;
+};
+
+const amplifierLoop = (program, phases) => {
+  let i1 = [phases[0], 0];
+  let i2 = [phases[1]];
+  let i3 = [phases[2]];
+  let i4 = [phases[3]];
+  let i5 = [phases[4]];
+  let pointer1 = 0;
+  let pointer2 = 0;
+  let pointer3 = 0;
+  let pointer4 = 0;
+  let pointer5 = 0;
+  let lastSignal = 0;
+  let program1 = [...program];
+  let program2 = [...program];
+  let program3 = [...program];
+  let program4 = [...program];
+  let program5 = [...program];
+  while (pointer5 != -1) {
+    const [p1, r1] = amplifier(pointer1, program1, i1);
+    i2.push(r1);
+    pointer1 = p1;
+    const [p2, r2] = amplifier(pointer2, program2, i2);
+    i3.push(r2);
+    pointer2 = p2;
+    const [p3, r3] = amplifier(pointer3, program3, i3);
+    i4.push(r3);
+    pointer3 = p3;
+    const [p4, r4] = amplifier(pointer4, program4, i4);
+    i5.push(r4);
+    pointer4 = p4;
+    const [p5, r5] = amplifier(pointer5, program5, i5);
+    i1.push(r5);
+    pointer5 = p5;
+    lastSignal = r5;
+  }
+  return lastSignal;
+};
+
+const searchSignalLoop = program => {
+  const permutations = permutator([5, 6, 7, 8, 9]);
+  let signal = 0;
+  permutations.forEach(phases => {
+    let output = amplifierLoop(program, phases);
+    signal = Math.max(signal, output);
   });
   return signal;
 };
@@ -189,60 +244,106 @@ const test = () => {
   console.log("Test started");
   let program = [
     3,
-    15,
+    26,
+    1001,
+    26,
+    -4,
+    26,
     3,
-    16,
+    27,
     1002,
-    16,
-    10,
-    16,
+    27,
+    2,
+    27,
     1,
-    16,
-    15,
-    15,
+    27,
+    26,
+    27,
     4,
-    15,
+    27,
+    1001,
+    28,
+    -1,
+    28,
+    1005,
+    28,
+    6,
     99,
     0,
-    0
+    0,
+    5
   ];
-  let phases = [4, 3, 2, 1, 0];
-  console.log(amplifierSeries(program, phases));
+  let phase = [9, 8, 7, 6, 5];
+  console.log(amplifierLoop(program, phase));
   program = [
     3,
-    23,
+    52,
+    1001,
+    52,
+    -5,
+    52,
     3,
-    24,
-    1002,
-    24,
-    10,
-    24,
-    1002,
-    23,
-    -1,
-    23,
-    101,
-    5,
-    23,
-    23,
+    53,
     1,
-    24,
-    23,
-    23,
+    52,
+    56,
+    54,
+    1007,
+    54,
+    5,
+    55,
+    1005,
+    55,
+    26,
+    1001,
+    54,
+    -5,
+    54,
+    1105,
+    1,
+    12,
+    1,
+    53,
+    54,
+    53,
+    1008,
+    54,
+    0,
+    55,
+    1001,
+    55,
+    1,
+    55,
+    2,
+    53,
+    55,
+    53,
     4,
-    23,
+    53,
+    1001,
+    56,
+    -1,
+    56,
+    1005,
+    56,
+    6,
     99,
     0,
-    0
+    0,
+    0,
+    0,
+    10
   ];
-  phases = [0, 1, 2, 3, 4];
-  console.log(amplifierSeries(program, phases));
+  phase = [9, 7, 8, 5, 6];
+  console.log(amplifierLoop(program, phase));
   return true;
 };
 
 const main = lines => {
   if (test()) {
+    console.log("Test finished");
     const program = lines.map(line => toIntArr(line))[0];
-    console.log(`Part 1: ${searchSignal(program)}`);
+    console.log(`Part 1: ${searchSignal([...program])}`);
+    console.log(`Part 2: ${searchSignalLoop([...program])}`);
   }
 };
