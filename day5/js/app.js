@@ -2,7 +2,7 @@ const fs = require("fs");
 const readline = require("readline");
 
 const readInterface = readline.createInterface({
-  input: fs.createReadStream("../../day5/input")
+  input: fs.createReadStream("../input")
 });
 let lines = [];
 readInterface.on("line", line => lines.push(line.trim()));
