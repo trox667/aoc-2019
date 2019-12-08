@@ -71,7 +71,7 @@ let toImage width (imageData: int[]) =
 
 [<EntryPoint>]
 let main argv =
-    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day8/input" |> Array.item 0 |> toIntArr 
+    let data = File.ReadAllLines "../input" |> Array.item 0 |> toIntArr 
     data 
       |> createLayers LAYERSIZE 
       |> find0

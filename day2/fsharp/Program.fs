@@ -41,7 +41,7 @@ let rec increment (n, v) target (d: int[]) =
 
 [<EntryPoint>]
 let main argv =
-  let lines = File.ReadAllLines("D:/sw/rust/aoc-2019/day2/input")
+  let lines = File.ReadAllLines("../input")
   let res = lines.[0] |> toIntArr |> setValues |> run 0
   printfn " Part 1: %i" res.[0]
   let res2 = lines.[0] |> toIntArr |> increment (0,0) 19690720

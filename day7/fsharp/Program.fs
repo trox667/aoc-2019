@@ -149,10 +149,10 @@ let tests () =
   true
 
 let testDay5() =
-    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    let data = File.ReadAllLines "../../day5/input" |> Array.item 0 |> toIntArr 
     let part1 = run 0 data [|1|] [||] 
 
-    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    let data = File.ReadAllLines "../../day5/input" |> Array.item 0 |> toIntArr 
     let part2 = run 0 data [|5|] [||]
     Array.last part1 |> printfn "%i" 
     Array.last part2 |> printfn "%i" 
@@ -162,7 +162,7 @@ let testDay5() =
 let main argv =
   if tests() && testDay5() then
       printfn "Tests successfully run"
-      let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day7/input" |> Array.item 0 |> toIntArr 
+      let data = File.ReadAllLines "../input" |> Array.item 0 |> toIntArr 
       searchAmplifierValue data |> printfn "Part 1: %i"
 
   else 

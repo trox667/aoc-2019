@@ -112,8 +112,8 @@ let main argv =
     //Array.set data 1 12
     //Array.set data 2 2
     //run 0 data [||] |> printfn "%A"
-    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    let data = File.ReadAllLines "../input" |> Array.item 0 |> toIntArr 
     run 0 data 1 [||] |> printfn "%A"
-    let data = File.ReadAllLines "D:/sw/rust/aoc-2019/day5/input" |> Array.item 0 |> toIntArr 
+    let data = File.ReadAllLines "../input" |> Array.item 0 |> toIntArr 
     run 0 data 5 [||] |> printfn "%A"
   0 // return an integer exit code
