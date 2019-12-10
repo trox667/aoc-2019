@@ -57,122 +57,25 @@ const checkLos = (map, source) => {
   return count;
 };
 
-const setCharAt = (str, index, chr) => {
-  if (index > str.length - 1) return str;
-  return str.substr(0, index) + chr + str.substr(index + 1);
-};
-
-const vaporize = (map, source) => {
-  let remove = [];
-  let removed = [];
-  const [sx, sy] = source;
-  let my = 0;
-  let mx = map[0].length;
-  while (removed.length < 201) {
-    for (let x = sx; x < mx; x++) {
-      for (let y = my; y < sy; y++) {
-        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
-        else {
-          if (los(map, source, [x, y])) {
-            remove.push([x, y]);
-            removed.push([x, y]);
-          }
-        }
-      }
-    }
-    for (let x = sx; x < mx; x++) {
-      for (let y = map.length - 1; y > sy; y--) {
-        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
-        else {
-          if (los(map, source, [x, y])) {
-            remove.push([x, y]);
-            removed.push([x, y]);
-          }
-        }
-      }
-    }
-    for (let x = sx; x > 0; x--) {
-      for (let y = map.length - 1; y > sy; y--) {
-        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
-        else {
-          if (los(map, source, [x, y])) {
-            remove.push([x, y]);
-            removed.push([x, y]);
-          }
-        }
-      }
-    }
-    for (let x = sx; x > 0; x--) {
-      for (let y = my; y < sy; y++) {
-        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
-        else {
-          if (los(map, source, [x, y])) {
-            remove.push([x, y]);
-            removed.push([x, y]);
-          }
-        }
-      }
-    }
-
-    remove.forEach(([x, y]) => {
-      map[y] = setCharAt(map[y], x, ".");
-    });
-  }
-  return removed[199];
-};
-
 const los = (map, source, target) => {
   const [sx, sy] = source;
-  let [tx, ty] = target;
+  const [tx, ty] = target;
   const [gx, gy] = gradient(source, target);
 
-  if (sy < ty) {
-    // target is above source, y--
-    for (let y = ty - gy; y > sy; y -= gy) {
-      if (sx < tx) {
-        // x--
-        tx = tx - gx;
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      } else if (sx > tx) {
-        // x++
-        tx = tx + gx;
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      } else {
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      }
+  let x = sx+gx;
+  let y = sy+gy;
+  let hit = false;
+  while(!hit) {
+    if(map[y][x].localeCompare('#') == 0) {
+      hit = true;
+      break;
     }
-  } else if (sy > ty) {
-    // target is below source, y++
-    for (let y = ty + gy; y < sy; y += gy) {
-      if (sx < tx) {
-        // x--
-        tx = tx - gx;
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      } else if (sx > tx) {
-        // x++
-        tx = tx + gx;
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      } else {
-        if (map[y][tx].localeCompare("#") == 0) return false;
-      }
-    }
-  } else {
-    // target and source are horizontal aligned
-    if (sx < tx) {
-      // x--
-      while (sx + 1 < tx) {
-        tx = tx - gx;
-        if (map[ty][tx].localeCompare("#") == 0) return false;
-      }
-    } else if (sx > tx) {
-      // x++
-      while (sx - 1 > tx) {
-        tx = tx + gx;
-        if (map[ty][tx].localeCompare("#") == 0) return false;
-      }
-    } else {
-      if (map[ty][tx].localeCompare("#") == 0) return false;
-    }
+    x += gx;
+    y += gy;
+  }
+  if(hit) {
+    if(x == tx && y == ty) return true;
+    else return false;
   }
   return true;
 };
@@ -192,56 +95,29 @@ const gcd = (a, b) => {
 const gradient = (source, target) => {
   const [sx, sy] = source;
   const [tx, ty] = target;
-  const gx = Math.abs(sx - tx);
-  const gy = Math.abs(sy - ty);
+  const gx = tx - sx;
+  const gy = ty - sy;
   const g = gcd(gx, gy);
   return [gx / g, gy / g];
 };
 
 const test = () => {
-  let sample = [
-    ".#....#####...#..",
-    "##...##.#####..##",
-    "##...#...#.#####.",
-    "..#.....x...###..",
-    "..#.#.....#....##"
-  ];
-  const source = [8, 3];
-  //vaporize(sample, source);
-  console.log(sample);
+  let sample = [".#..#", ".....", "#####", "....#", "...##"];
+  const map = sample.map(line => splitLine(line));
+  console.log(map);
+  console.log("Test finished");
+  const result = walkMap(map);
+  console.log(`Sample 1: ${findBest(result)}`);
 
-  let sample2 = [
-    ".#..##.###...#######",
-    "##.############..##.",
-    ".#.######.########.#",
-    ".###.#######.####.#.",
-    "#####.##.#.##.###.##",
-    "..#####..#.#########",
-    "####################",
-    "#.####....###.#.#.##",
-    "##.#################",
-    "#####.##.###..####..",
-    "..######..##.#######",
-    "####.##.####...##..#",
-    ".#####..#.######.###",
-    "##...#.##########...",
-    "#.##########.#######",
-    ".####.#.###.###.#.##",
-    "....##.##.###..#####",
-    ".#.#.###########.###",
-    "#.#.#.#####.####.###",
-    "###.##.####.##.#..##"
-  ];
-  console.log(`${vaporize(lines, [11, 13])}`);
-
-  return false;
+  return true;
 };
 
 const main = lines => {
   if (test()) {
+    const map = lines.map(line => splitLine(line));
+    console.log(map);
     console.log("Test finished");
-    const map = walkMap(lines);
-    console.log(`Part 1: ${findBest(map)}`);
-    console.log(`Part 2: ${vaporize(lines, [8, 16])}`);
+    const result = walkMap(map);
+    console.log(`Part 1: ${findBest(result)}`);
   }
 };
