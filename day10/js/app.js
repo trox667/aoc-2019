@@ -62,19 +62,19 @@ const los = (map, source, target) => {
   const [tx, ty] = target;
   const [gx, gy] = gradient(source, target);
 
-  let x = sx+gx;
-  let y = sy+gy;
+  let x = sx + gx;
+  let y = sy + gy;
   let hit = false;
-  while(!hit) {
-    if(map[y][x].localeCompare('#') == 0) {
+  while (!hit) {
+    if (map[y][x].localeCompare("#") == 0) {
       hit = true;
       break;
     }
     x += gx;
     y += gy;
   }
-  if(hit) {
-    if(x == tx && y == ty) return true;
+  if (hit) {
+    if (x == tx && y == ty) return true;
     else return false;
   }
   return true;
@@ -98,18 +98,42 @@ const gradient = (source, target) => {
   const gx = tx - sx;
   const gy = ty - sy;
   const g = gcd(gx, gy);
-  return [gx / g, gy / g];
+  const t1 = gx != 0 ? gx / g : 0;
+  const t2 = gy != 0 ? gy / g : 0;
+  return [t1, t2];
+};
+
+const gradientMap = (map, source) => {
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[0].length; x++) {
+      if (map[y][x].localeCompare("#") == 0) {
+        const [sx, sy]= source;
+        const [gx, gy] = gradient([sx+1, sy+1], [x+1, y+1]);
+        if(gy == 0) map[y][x] = 0;
+        else map[y][x] = gx / gy;
+        console.log(x,y, (map[y][x]))
+      }
+    }
+  }
+  return map;
 };
 
 const test = () => {
-  let sample = [".#..#", ".....", "#####", "....#", "...##"];
+  let sample = [
+    ".#....#####...#..",
+    "##...##.#####..##",
+    "##...#...#.#####.",
+    "..#.....X...###..",
+    "..#.#.....#....##"
+  ];
   const map = sample.map(line => splitLine(line));
   console.log(map);
   console.log("Test finished");
-  const result = walkMap(map);
-  console.log(`Sample 1: ${findBest(result)}`);
+  //const result = walkMap(map);
+  //console.log(`Sample 1: ${findBest(result)}`);
+  console.log(gradientMap(map, [8,3]));
 
-  return true;
+  return false;
 };
 
 const main = lines => {
@@ -118,6 +142,9 @@ const main = lines => {
     console.log(map);
     console.log("Test finished");
     const result = walkMap(map);
-    console.log(`Part 1: ${findBest(result)}`);
+    const best = findBest(result);
+    console.log(`Part 1: ${best}`);
+
+    console.log(gradientMap(map, [8, 16]));
   }
 };
