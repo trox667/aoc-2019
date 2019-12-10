@@ -38,78 +38,50 @@ const checkLOS = (map, source) => {
       if(map[y][x].localeCompare('#') != 0 ||
          x == sx && y == sy) continue;
       else {
-        const g = gradient([x,y], source)
-        if(isLOSClear(map, [x,y], source, g)) count++;
+        if(isLOSClear(map, [x,y], source)) count++;
       }
     }
   }
   return count;
 }
 
-const gradient = (target, source) => {
+const angle = (target, source) => {
   const [tx, ty] = target;
   const [sx, sy] = source;
-
-  let dstX = Math.abs(sx-tx)
-  let dstY = Math.abs(sy-ty)
-  if(dstX % dstY == 0) {
-
-  }
-  return [dstX, dstY]
+  return (tx*sx + ty * sy) / ( (Math.sqrt(tx*tx + ty*ty)) * (Math.sqrt(sx*sx + sy*sy))) 
 }
 
-const isLOSClear = (map, target, source, gradient) => {
+const angleEq = (a1, a2) => {
+  const EPSILON = 0.001;
+  return a1 - a2 <= EPSILON;
+}
+
+const isLOSClear = (map, target, source) => {
   let [tx, ty] = target;
   let [sx, sy] = source;
-  let [gx, gy] = gradient;
 
-  if(sy>ty) {
-    // source is below target, y++
-    for(let y = ty+gy; y < sy; y+=gy) {
+  let a = angle(target, source);
+  if (sy > ty) {
+    for(let y = (ty+1); y < sy; y++) {
+      // source is below target, target++
       if(sx > tx) {
-        // source is right of target, x++
-        tx = tx+gx; 
-        if(map[y][tx].localeCompare('#') == 0) return false;
-      } else if (sx < tx) {
-        // source is left of target, x--
-        tx = tx-gx; 
-        if(map[y][tx].localeCompare('#') == 0) return false;
+        // source is right of the target, target++
+        tx++;
+        let b = angle([tx,y], source);
+        if(angleEq(a,b) && map[y][tx].localeCompare('#'))
+          return false;
+      } else if(sx < tx) {
+        // source is left of the target, target--
       } else {
-        return true
+        // source and target are vertical
       }
     }
-  } else if(sy<ty) {
-    // source is above target, y--
-    for(let y = ty-gy; y > sy; y-=gy) {
-      if(sx > tx) {
-        // source is right of target, x++
-        tx = tx+gx; 
-        if(map[y][tx].localeCompare('#') == 0) return false;
-      } else if (sx < tx) {
-        // source is left of target, x--
-        tx = tx-gx; 
-        if(map[y][tx].localeCompare('#') == 0) return false;
-      } else {
-        return true
-      }
-    }
+  } else if(sy < ty) {
+    // source is above target, target--
+
   } else {
-    // horizontal, y=0
-    if(sx > tx) {
-      while((sx-1) > tx) {
-        // source is right of target, x++
-        tx++; 
-        if(map[ty][tx].localeCompare('#') == 0) return false;
-      }
-    } else if (sx < tx) {
-      while(sx < (tx-1)) {
-        // source is left of target, x--
-        tx--; 
-        if(map[ty][tx].localeCompare('#') == 0) return false;
-      }
-    } else {
-      return true
-    }
+    // source and target are horizontal
+
   }
 
   return true
@@ -126,13 +98,6 @@ const test = () => {
   let map =  data.map(line => splitLine(line));
   console.log(map);
   //console.log(walkMap(map))
-  console.log(isLOSClear(map, [4,0], [1,0], gradient([4,0], [1,0])))
-  console.log(isLOSClear(map, [0,2], [1,0], gradient([0,2], [1,0])))
-  console.log(isLOSClear(map, [1,2], [1,0], gradient([1,2], [1,0])))
-  console.log(isLOSClear(map, [2,2], [1,0], gradient([2,2], [1,0])))
-  console.log(isLOSClear(map, [3,2], [1,0], gradient([3,2], [1,0])))
-  console.log(isLOSClear(map, [4,2], [1,0], gradient([4,2], [1,0])))
-  console.log(isLOSClear(map, [4,3], [1,0], gradient([4,3], [1,0])))
   return false;
 };
 
