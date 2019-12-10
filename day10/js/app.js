@@ -21,22 +21,22 @@ const splitLine = line => {
 const findBest = resultsMap => {
   let maxV = 0;
   let maxK = "";
-  for(let [k,v] of resultsMap.entries()) {
-    if( v > maxV) {
+  for (let [k, v] of resultsMap.entries()) {
+    if (v > maxV) {
       maxV = v;
       maxK = k;
     }
   }
 
   return [maxK, maxV];
-}
+};
 
 const walkMap = map => {
   const results = new Map();
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[0].length; x++) {
       if (map[y][x].localeCompare("#") != 0) continue;
-      results.set(`${x},${y}`, checkLos(map, [x,y]))
+      results.set(`${x},${y}`, checkLos(map, [x, y]));
     }
   }
   return results;
@@ -54,28 +54,72 @@ const checkLos = (map, source) => {
     }
   }
 
-  return count
+  return count;
 };
 
-const vaporizeSector = (map, source, sector) => {
+const setCharAt = (str, index, chr) => {
+  if (index > str.length - 1) return str;
+  return str.substr(0, index) + chr + str.substr(index + 1);
+};
+
+const vaporize = (map, source) => {
+  let remove = [];
+  let removed = [];
   const [sx, sy] = source;
-  if(sector == 0) {
-    const my = 0;
-    const mx = map[0].length;
-    for (let y = sy; y > my; y--) {
-      for (let x = sx; x < mx; x++) {
+  let my = 0;
+  let mx = map[0].length;
+  while (removed.length < 201) {
+    for (let x = sx; x < mx; x++) {
+      for (let y = my; y < sy; y++) {
         if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
         else {
           if (los(map, source, [x, y])) {
-            map[y][x] = "."
+            remove.push([x, y]);
+            removed.push([x, y]);
+          }
+        }
+      }
+    }
+    for (let x = sx; x < mx; x++) {
+      for (let y = map.length - 1; y > sy; y--) {
+        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
+        else {
+          if (los(map, source, [x, y])) {
+            remove.push([x, y]);
+            removed.push([x, y]);
+          }
+        }
+      }
+    }
+    for (let x = sx; x > 0; x--) {
+      for (let y = map.length - 1; y > sy; y--) {
+        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
+        else {
+          if (los(map, source, [x, y])) {
+            remove.push([x, y]);
+            removed.push([x, y]);
+          }
+        }
+      }
+    }
+    for (let x = sx; x > 0; x--) {
+      for (let y = my; y < sy; y++) {
+        if (map[y][x].localeCompare("#") != 0 || (x == sx && y == sy)) continue;
+        else {
+          if (los(map, source, [x, y])) {
+            remove.push([x, y]);
+            removed.push([x, y]);
           }
         }
       }
     }
 
+    remove.forEach(([x, y]) => {
+      map[y] = setCharAt(map[y], x, ".");
+    });
   }
-
-}
+  return removed[199];
+};
 
 const los = (map, source, target) => {
   const [sx, sy] = source;
@@ -155,36 +199,49 @@ const gradient = (source, target) => {
 };
 
 const test = () => {
-  const data = [".#..#", ".....", "#####", "....#", "...##"];
-  let map = data.map(line => splitLine(line));
-  console.log(map);
-  console.log("MAP")
-  console.log(walkMap(map))
-  const resultsMap = walkMap(map)
-  console.log(findBest(resultsMap))
+  let sample = [
+    ".#....#####...#..",
+    "##...##.#####..##",
+    "##...#...#.#####.",
+    "..#.....x...###..",
+    "..#.#.....#....##"
+  ];
+  const source = [8, 3];
+  //vaporize(sample, source);
+  console.log(sample);
 
-  let sample1 = [
-    "......#.#.",
-    "#..#.#....",
-    "..#######.",
-    ".#.#.###..",
-    ".#..#.....",
-    "..#....#.#",
-    "#..#....#.",
-    ".##.#..###",
-    "##...#..#.",
-    ".#....####",
-  ]
-  const resultsMap1 = walkMap(sample1)
-  console.log(findBest(resultsMap1))
+  let sample2 = [
+    ".#..##.###...#######",
+    "##.############..##.",
+    ".#.######.########.#",
+    ".###.#######.####.#.",
+    "#####.##.#.##.###.##",
+    "..#####..#.#########",
+    "####################",
+    "#.####....###.#.#.##",
+    "##.#################",
+    "#####.##.###..####..",
+    "..######..##.#######",
+    "####.##.####...##..#",
+    ".#####..#.######.###",
+    "##...#.##########...",
+    "#.##########.#######",
+    ".####.#.###.###.#.##",
+    "....##.##.###..#####",
+    ".#.#.###########.###",
+    "#.#.#.#####.####.###",
+    "###.##.####.##.#..##"
+  ];
+  console.log(`${vaporize(lines, [11, 13])}`);
 
-  return true;
+  return false;
 };
 
 const main = lines => {
   if (test()) {
     console.log("Test finished");
-    const map = walkMap(lines)
-    console.log(`Part 1: ${findBest(map)}`)
+    const map = walkMap(lines);
+    console.log(`Part 1: ${findBest(map)}`);
+    console.log(`Part 2: ${vaporize(lines, [8, 16])}`);
   }
 };
