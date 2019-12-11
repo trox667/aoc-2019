@@ -69,14 +69,14 @@ const write = (pointer, program, value) => {
   if (pointer < program.length) program[pointer] = value;
 };
 
-const getData = (pointer, program, mode, base = 0) => {
+const getData = (pointer, program, mode, base = [0]) => {
   const m = read(pointer, program);
   if (mode == 1) {
     return m;
   } else if (mode == 2) {
-    return read(m + base, program);
+    return read(m + base[0], program);
   } else if (mode == -1) {
-    return m + base;
+    return m + base[0];
   } else {
     return read(m, program);
   }
@@ -110,8 +110,7 @@ const getInstruction = (pointer, program, base) => {
   return [op, r1, r2, r3];
 };
 
-const run = (pointer, program, inputs, output) => {
-  let base = 0;
+const run = (pointer, program, inputs, output, base) => {
   let halt = false;
   while (!halt || pointer >= program.length) {
     const [op, p1, p2, p3] = getInstruction(pointer, program, base);
@@ -163,7 +162,7 @@ const run = (pointer, program, inputs, output) => {
         break;
       }
       case 9: {
-        base += p1;
+        base[0] += p1;
         pointer += 2;
         break;
       }
@@ -208,7 +207,7 @@ const getDirection = (currDir, direction) => {
 };
 
 // black = 0
-// white = 0
+// white = 1
 // panel default = black
 // turn left 90 = 0
 // turn right 90 = 1
@@ -229,6 +228,7 @@ const part1 = lines => {
   let y = 0;
   let currDir = UP;
   let pointer = 0;
+  let base = [0];
   while (!stop) {
     // get current color for robot camera
     let currColor = colors.get(`${x},${y}`);
@@ -236,7 +236,7 @@ const part1 = lines => {
     input.push(currColor);
 
     // run the int code
-    pointer = run(pointer, program, input, output);
+    pointer = run(pointer, program, input, output, base);
 
     // get the color and the direction
     const [color, direction] = output;
@@ -279,6 +279,105 @@ const part1 = lines => {
   return panels.size;
 };
 
+const part2 = (lines) => {
+  const memory = lines.map(line => toIntArr(line))[0];
+  let program = new Array(65535);
+  program.fill(0);
+  for (let i = 0; i < memory.length; i++) program[i] = memory[i];
+  let output = [];
+  // [x,y,count]
+  let panels = new Map();
+  let colors = new Map();
+
+  // start input is black
+  let input = [];
+  let stop = false;
+  let x = 0;
+  let y = 0;
+  let currDir = UP;
+  let pointer = 0;
+  let init = true;
+  let base = [0]
+  while (!stop) {
+    // get current color for robot camera
+    let currColor = colors.get(`${x},${y}`);
+    if (!currColor) {
+      if(init) {
+        currColor = 1;
+        init = false;
+      } else {
+        currColor = 0;
+      }
+    }
+    input.push(currColor);
+
+    // run the int code
+    pointer = run(pointer, program, input, output, base);
+
+    // get the color and the direction
+    const [color, direction] = output;
+    output = [];
+
+    // store the color
+    colors.set(`${x},${y}`, color);
+
+    // get the panel to change the visited count
+    let panel = panels.get(`${x},${y}`);
+    if (!panel) {
+      panels.set(`${x},${y}`, 1);
+    } else {
+      panels.set(`${x},${y}`, ++panel);
+    }
+
+    // convert the direction to x/y
+    currDir = getDirection(currDir, direction);
+    switch (currDir) {
+      case UP:
+        y++;
+        break;
+      case RIGHT:
+        x++;
+        break;
+      case DOWN:
+        y--;
+        break;
+      case LEFT:
+        x--;
+        break;
+    }
+
+    // terminate
+    if (pointer === -1) {
+      stop = true;
+    }
+  }
+
+  let minX = Number.MAX_VALUE;
+  let minY = Number.MAX_VALUE;
+  let maxX = Number.MIN_VALUE;
+  let maxY = 0;
+  for (let k of panels.keys()) {
+    const [x,y] = k.split(",").map(c => parseInt(c))
+    minX = Math.min(x, minX);
+    minY = Math.min(y, minY);
+    maxX = Math.max(x, maxX);
+    maxY = Math.max(y, maxY);
+  }
+  //console.log(minX, minY, maxX, maxY)
+  for(let y = maxY; y >= minY; y--) {
+    let line = ""
+    for(let x = minX; x <= maxX; x++) {
+      let color = colors.get(`${x},${y}`);
+      if(color === undefined) line += "#"
+      else {
+        if(color === 1) line += "#"
+        else if(color === 0) line += " "
+      }
+    }
+    console.log(line)
+  }
+}
+
 const test = () => {
   return true;
 };
@@ -287,5 +386,6 @@ const main = lines => {
   if (test()) {
   }
 
-  console.log(`Part 1: ${part1(lines)}`);
+  console.log(`Part 1: ${part1([...lines])}`);
+  console.log(`Part 2: ${part2([...lines])}`);
 };
