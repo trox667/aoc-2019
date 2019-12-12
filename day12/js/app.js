@@ -92,10 +92,22 @@ const pairGravity = pair => {
   return [moon1, moon2];
 };
 
+const pairGravityAxis = (pair, axis, vel) => {
+  let [moon1, moon2] = pair;
+  moon1[vel] += gravity(moon1[axis], moon2[axis]);
+
+  moon2[vel] += gravity(moon2[axis], moon1[axis]);
+  return [moon1, moon2];
+};
+
 const applyVelocity = moon => {
   moon.x += moon.vx;
   moon.y += moon.vy;
   moon.z += moon.vz;
+};
+
+const applyVelocityAxis = (moon, axis, vel) => {
+  moon[axis] += moon[vel];
 };
 
 const energy = moon => {
@@ -122,7 +134,55 @@ const part1 = lines => {
   return systemEnergy(moons);
 };
 
-const part2 = lines => {};
+const moonToString = moon => {
+  return `${moon.x},${moon.y},${moon.z},${moon.vx},${moon.vy},${moon.vz}`;
+};
+
+const moonsToString = moons => {
+  let line = '';
+  moons.forEach(moon => (line += moonToString(moon) + ':'));
+  return line;
+};
+
+const gcd = (a, b) => {
+  if (!b) return a;
+  return gcd(b, a % b);
+};
+
+const lcd = (a, b) => {
+  return (a * b) / gcd(a, b);
+};
+
+const part2 = lines => {
+  const moons = lines.map(line => createMoon(line));
+  const startLocation = moonsToString(moons);
+  console.log('startLocation', startLocation);
+  const pairs = createPairs(moons);
+
+  const getCountForAxis = (moons, pairs, axis, vel) => {
+    let set = new Set();
+
+    let count = 0;
+    while (!set.has(startLocation)) {
+      pairs.forEach(pair => pairGravityAxis(pair, axis, vel));
+      moons.forEach(moon => {
+        applyVelocityAxis(moon, axis, vel);
+      });
+      set.add(moonsToString(moons));
+      count++;
+    }
+    return count;
+  };
+
+  const copyPairs = pairs => {
+    return pairs.map(pair => [...pair]);
+  };
+  let x = getCountForAxis([...moons], copyPairs(pairs), 'x', 'vx');
+  let y = getCountForAxis([...moons], copyPairs(pairs), 'y', 'vy');
+  let z = getCountForAxis([...moons], copyPairs(pairs), 'z', 'vz');
+  console.log(x,y,z)
+  return lcd(x, lcd(y, z));
+};
 
 const test = () => {
   //let callisto = {x: 5, y:0, z:0, vx: 0, vy: 0, vz: 0}
@@ -148,8 +208,46 @@ const test = () => {
   return systemEnergy(moons) === 179;
 };
 
+const test2 = () => {
+  let sample = [
+    '<x=-1, y=0, z=2>',
+    '<x=2, y=-10, z=-7>',
+    '<x=4, y=-8, z=8>',
+    '<x=3, y=5, z=-1>',
+  ];
+
+  const moons = sample.map(line => createMoon(line));
+  const startLocation = moonsToString(moons);
+  console.log('startLocation', startLocation);
+  const pairs = createPairs(moons);
+
+  const getCountForAxis = (moons, pairs, axis, vel) => {
+    let set = new Set();
+
+    let count = 0;
+    while (!set.has(startLocation)) {
+      pairs.forEach(pair => pairGravityAxis(pair, axis, vel));
+      moons.forEach(moon => {
+        applyVelocityAxis(moon, axis, vel);
+      });
+      set.add(moonsToString(moons));
+      count++;
+    }
+    return count;
+  };
+
+  const copyPairs = pairs => {
+    return pairs.map(pair => [...pair]);
+  };
+  let x = getCountForAxis([...moons], copyPairs(pairs), 'x', 'vx');
+  let y = getCountForAxis([...moons], copyPairs(pairs), 'y', 'vy');
+  let z = getCountForAxis([...moons], copyPairs(pairs), 'z', 'vz');
+
+  return lcd(x, lcd(y, z)) == 2772;
+};
+
 const main = lines => {
-  if (test()) {
+  if (test() && test2()) {
     console.log(`Part 1: ${part1([...lines])}`);
     console.log(`Part 2: ${part2([...lines])}`);
   }
