@@ -59,8 +59,8 @@ const createPairs = moons => {
 const createMoon = line => {
   line = line.substring(1);
   line = line.substring(0, line.length - 1);
-  tokens = line.split(', ');
-  moonAxis = tokens.map(token => {
+  const tokens = line.split(', ');
+  const moonAxis = tokens.map(token => {
     const [axis, value] = token.split('=');
     return {axis, value: parseInt(value)};
   });
